@@ -3,7 +3,7 @@ provider "azurerm" {
   features {}
 
   # Azure details
-  subscription_id = "56ac1107-64d9-439a-9c99-dd90aa2f458e"
+  subscription_id = "replace"
 }
 
 # Create a resource group

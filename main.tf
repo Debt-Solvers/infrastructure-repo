@@ -36,7 +36,16 @@ resource "azurerm_network_interface" "my_nic" {
     name                          = "vmIPConfig"
     subnet_id                     = azurerm_subnet.my_subnet.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.my_public_ip.id
   }
+}
+
+resource "azurerm_public_ip" "my_public_ip" {
+  name                = "vmPublicIP"
+  location            = azurerm_resource_group.my_rg.location
+  resource_group_name = azurerm_resource_group.my_rg.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_linux_virtual_machine" "my_vm" {

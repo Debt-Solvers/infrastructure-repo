@@ -3,33 +3,28 @@ provider "azurerm" {
   features {}
 
   # Azure details, replace with sub IP or use env
-#  subscription_id = "replace"
+  #  subscription_id = "replace"
 }
 
 # Create a resource group
 resource "azurerm_resource_group" "my_rg" {
-  name     = "debtSolverRG"
-  location = "East US"
+  name     = var.resource_group_name
+  location = var.location
 }
 
-# az login --use-device-code
-#$env:ARM_SUBSCRIPTION_ID = "<your_subscription_id>"
-#$env:ARM_CLIENT_ID = "<your_client_id>"
-#$env:ARM_CLIENT_SECRET = "<your_client_secret>"
-#$env:ARM_TENANT_ID = "<your_tenant_id>"
 
 resource "azurerm_virtual_network" "my_vnet" {
-  name                = "appVnet"
-  address_space       = ["10.0.0.0/16"]
+  name                = var.vnet_name
+  address_space       = var.vnet_address_space
   location            = azurerm_resource_group.my_rg.location
   resource_group_name = azurerm_resource_group.my_rg.name
 }
 
 resource "azurerm_subnet" "my_subnet" {
-  name                 = "vmSubnet"
+  name                 = var.subnet_name
   resource_group_name  = azurerm_resource_group.my_rg.name
   virtual_network_name = azurerm_virtual_network.my_vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = var.subnet_address_prefix
 }
 
 resource "azurerm_network_interface" "my_nic" {
@@ -45,13 +40,13 @@ resource "azurerm_network_interface" "my_nic" {
 }
 
 resource "azurerm_linux_virtual_machine" "my_vm" {
-  name                = "myVM"
+  name                = var.vm_name
   resource_group_name = azurerm_resource_group.my_rg.name
   location            = azurerm_resource_group.my_rg.location
-  size                = "Standard_B1s"
+  size                = var.vm_size
 
-  admin_username = "azureuser"
-  admin_password = "YourP@ssword1234"
+  admin_username                  = var.admin_username
+  admin_password                  = var.admin_password
   disable_password_authentication = false
 
   network_interface_ids = [azurerm_network_interface.my_nic.id]

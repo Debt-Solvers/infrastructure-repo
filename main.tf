@@ -3,7 +3,7 @@ provider "azurerm" {
   features {}
 
   # Azure details, replace with sub IP or use env
-  #subscription_id = "Delete everytime"
+  subscription_id = "56ac1107-64d9-439a-9c99-dd90aa2f458e"
 }
 
 # Create a resource group
@@ -60,6 +60,10 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
   admin_username                  = var.admin_username
   admin_password                  = var.admin_password
   disable_password_authentication = false
+  admin_ssh_key {
+    username   = var.admin_username
+    public_key = file("./a1.pub") # Replace with the path to your SSH public key
+  }
 
   network_interface_ids = [azurerm_network_interface.my_nic.id]
 
@@ -74,6 +78,9 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
     sku       = "18.04-LTS"
     version   = "latest"
   }
+
+  # Load and encode the external script file
+  custom_data = base64encode(file("install_docker.sh"))
 }
 
 # Network Security Group (NSG) to control inbound traffic
@@ -105,6 +112,19 @@ resource "azurerm_network_security_group" "my_nsg" {
     source_port_range          = "*"
     destination_port_range     = "80"
     source_address_prefix      = "0.0.0.0/0" # Allows from any IP
+    destination_address_prefix = "*"
+  }
+
+  # Allow inbound access to PostgreSQL on port 5432 from any IP
+  security_rule {
+    name                       = "AllowPostgres"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "5432"
+    source_address_prefix      = "0.0.0.0/0"    # Allows access from any IP
     destination_address_prefix = "*"
   }
 

@@ -37,3 +37,8 @@ steps:
       - name: Build Docker image
         run: |
           docker build -t myregistry/my-backend-app:${{ github.sha }} .
+
+      # Push Docker image to registry
+      - name: Push Docker image
+        run: |
+          docker push myregistry/my-backend-app:${{ github.sha }}

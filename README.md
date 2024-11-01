@@ -29,6 +29,7 @@ or
 docker exec -it my_postgres bash
 psql -U myuser -d mydatabase
 
+# Sample command
 \l # Lists all databases
 \dt # check tables
 \q # Exit

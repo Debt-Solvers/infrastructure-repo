@@ -58,8 +58,8 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
   size                = var.vm_size
 
   admin_username                  = var.admin_username
-  admin_password                  = var.admin_password
-  disable_password_authentication = false
+  disable_password_authentication = true
+  
   admin_ssh_key {
     username   = var.admin_username
     public_key = file("./a1.pub") # Replace with the path to your SSH public key
@@ -146,4 +146,17 @@ resource "azurerm_network_security_group" "my_nsg" {
 resource "azurerm_subnet_network_security_group_association" "my_nsg_association" {
   subnet_id                 = azurerm_subnet.my_subnet.id
   network_security_group_id = azurerm_network_security_group.my_nsg.id
+}
+
+# Create Azure ACR
+resource "azurerm_container_registry" "my_acr" {
+  name                     = "debtsolverdockerregistry"            # Must be globally unique
+  resource_group_name      = azurerm_resource_group.my_rg.name
+  location                 = azurerm_resource_group.my_rg.location
+  sku                      = "Basic"                       # Options are Basic, Standard, or Premium
+  admin_enabled            = true                          # Enables admin user login
+
+  tags = {
+    Environment = "Dev"
+  }
 }

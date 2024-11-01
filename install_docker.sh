@@ -27,3 +27,6 @@ echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_rel
 # Update the package index again to include the Azure CLI repository and install Azure CLI
 sudo apt-get update
 sudo apt-get install -y azure-cli
+
+# Install PostgreSQL client
+sudo apt-get install -y postgresql-client

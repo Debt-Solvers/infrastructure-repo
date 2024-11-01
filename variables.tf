@@ -71,3 +71,22 @@ variable "admin_password" {
   sensitive   = true
 }
 */
+
+# PostgreSQL variables
+variable "postgresql_server_name" {
+  default = "mypostgresqldbserver"
+}
+
+variable "postgresql_admin_username" {
+  default = "adminuser"
+}
+
+variable "postgresql_admin_password" {
+  description = "The password for the PostgreSQL admin user"
+  default     = "YourP@ssw0rd!"
+  sensitive   = true
+}
+
+variable "postgresql_database_name" {
+  default = "mydatabase"
+}

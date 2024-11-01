@@ -59,7 +59,7 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
 
   admin_username                  = var.admin_username
   disable_password_authentication = true
-  
+
   admin_ssh_key {
     username   = var.admin_username
     public_key = file("./a1.pub") # Replace with the path to your SSH public key
@@ -124,7 +124,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "5432"
-    source_address_prefix      = "0.0.0.0/0"    # Allows access from any IP
+    source_address_prefix      = "0.0.0.0/0" # Allows access from any IP
     destination_address_prefix = "*"
   }
 
@@ -150,13 +150,56 @@ resource "azurerm_subnet_network_security_group_association" "my_nsg_association
 
 # Create Azure ACR
 resource "azurerm_container_registry" "my_acr" {
-  name                     = "debtsolverdockerregistry"            # Must be globally unique
-  resource_group_name      = azurerm_resource_group.my_rg.name
-  location                 = azurerm_resource_group.my_rg.location
-  sku                      = "Basic"                       # Options are Basic, Standard, or Premium
-  admin_enabled            = true                          # Enables admin user login
+  name                = "debtsolverdockerregistry" # Must be globally unique
+  resource_group_name = azurerm_resource_group.my_rg.name
+  location            = azurerm_resource_group.my_rg.location
+  sku                 = "Basic" # Options are Basic, Standard, or Premium
+  admin_enabled       = true    # Enables admin user login
 
   tags = {
     Environment = "Dev"
   }
+}
+
+# Create PostgreSQL Single Server with Azure Database
+resource "azurerm_postgresql_server" "my_postgresql_server" {
+  name                = var.postgresql_server_name
+  location            = azurerm_resource_group.my_rg.location
+  resource_group_name = azurerm_resource_group.my_rg.name
+
+  administrator_login          = var.postgresql_admin_username
+  administrator_login_password = var.postgresql_admin_password
+
+  sku_name   = "B_Gen5_1" # Basic SKU
+  storage_mb = 5120       # Minimum storage for basic SKU
+
+  version                 = "11" # PostgreSQL version 11 (or change to 10, 12, etc.)
+  ssl_enforcement_enabled = true
+
+  geo_redundant_backup_enabled = false
+  backup_retention_days        = 7 # For development workloads, this is often enough
+
+  tags = {
+    Environment = "Development"
+    Workload    = "Development"
+  }
+}
+
+# Create the PostgreSQL database
+resource "azurerm_postgresql_database" "my_database" {
+  name                = var.postgresql_database_name
+  resource_group_name = azurerm_resource_group.my_rg.name
+  server_name         = azurerm_postgresql_server.my_postgresql_server.name
+  charset             = "UTF8"
+  collation           = "English_United States.1252"
+}
+
+# PostgreSQL firewall rule to allow VM's IP address
+resource "azurerm_postgresql_firewall_rule" "allow_vm_ip" {
+  name                = "AllowVMAccess"
+  resource_group_name = azurerm_resource_group.my_rg.name
+  server_name         = azurerm_postgresql_server.my_postgresql_server.name
+
+  start_ip_address = azurerm_public_ip.my_public_ip.ip_address
+  end_ip_address   = azurerm_public_ip.my_public_ip.ip_address
 }

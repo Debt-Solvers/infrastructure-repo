@@ -1,6 +1,7 @@
 # az login --use-device-code
 # The code will deploy a VM with public IP and docker 
 # Need to have Azure subscription ID when applying deployment.
+# Remember to delete resources using terraform destroy after testing.
 
 # Initialization 
 ssh-keygen -t rsa -f a1
@@ -15,13 +16,20 @@ docker network create --driver bridge my_custom_bridge
 
 # Run postgresql container with official image on custom network and volume mount
 # If container is removed, data can be restored by running cmd again(volume attached).
-sudo docker pull postgres
+docker pull postgres
+# Create container on custom network
 docker run -d \
   --name my_postgres \
   --network my_custom_bridge \
   -e POSTGRES_USER=myuser \
   -e POSTGRES_PASSWORD=mypassword \
   -e POSTGRES_DB=mydatabase \
+  -e DB_HOST=localhost \
+  -e DB_PORT=5432 \
+  -e DB_USER=postgres \
+  -e DB_PASSWORD=root \
+  -e DB_NAME=debt_solver \
+  -e DB_SSLMODE=disable \
   -v pgdata:/var/lib/postgresql/data \
   -p 5432:5432 \
   postgres
@@ -40,7 +48,10 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL
 );
 
+# Insert data
 INSERT INTO users (username, password, email) VALUES ('testuser', 'testpassword', 'testuser@example.com');
+
+# Query
 SELECT * FROM users;
 
 \l # Lists all databases

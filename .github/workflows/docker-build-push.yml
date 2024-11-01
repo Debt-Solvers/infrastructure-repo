@@ -32,3 +32,8 @@ steps:
         with:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      # Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t myregistry/my-backend-app:${{ github.sha }} .

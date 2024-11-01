@@ -19,5 +19,9 @@ steps:
         uses: actions/setup-go@v3
         with:
         go-version: '1.17' # Use the appropriate Go version
-
         
+      # Build the Go project (optional if Dockerfile handles it)
+      - name: Build Go project
+        run: |
+          go mod download
+          go build -o app

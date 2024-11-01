@@ -1,0 +1,45 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main  # Change to your main branch if it's different
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code from the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Go environment
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.17'  # Specify the Go version as needed
+
+      # Step 3: Build the Go project (optional if Dockerfile handles it)
+      - name: Build Go project
+        run: |
+          go mod download
+          go build -o app ./path/to/your/main.go  # Adjust path as needed
+
+      # Step 4: Log in to the container registry
+      - name: Log in to Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: myregistry.azurecr.io  # Change to your container registry URL
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      # Step 5: Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t myregistry.azurecr.io/debt-solvers-backend:${{ github.sha }} .  # Adjust the image name as needed
+
+      # Step 6: Push Docker image to registry
+      - name: Push Docker image
+        run: |
+          docker push myregistry.azurecr.io/debt-solvers-backend:${{ github.sha }}  # Adjust the image name as needed

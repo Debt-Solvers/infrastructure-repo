@@ -1,5 +1,6 @@
 # az login --use-device-code
-# The code will deploy a VM with public IP and docker 
+# The terraform code will deploy a VM with a public IP and docker installed.
+# It will also create a PostgreSQL Single Server with Azure Database
 # Need to have Azure subscription ID when applying deployment.
 # Remember to delete resources using terraform destroy after testing.
 
@@ -7,38 +8,50 @@
 ssh-keygen -t rsa -f a1
 terraform init
 terraform apply
+scp -i a1 ./setup_docker_containers.sh azureuser@<public_ip_address>:/home/azureuser/
 
 # connect to VM
 ssh -i a1 azureuser@<public_ip_address>
+# give script permission
+chmod +x setup_docker_containers.sh
+# Run script
+./setup_docker_containers.sh
 
-# Create custom network
-docker network create --driver bridge my_custom_bridge
-
-# Run postgresql container with official image on custom network and volume mount
-# If container is removed, data can be restored by running cmd again(volume attached).
-docker pull postgres
-# Create container on custom network
+# Pull from github
+# build image
+# Create containers
 docker run -d \
   --name my_postgres \
   --network my_custom_bridge \
-  -e POSTGRES_USER=myuser \
-  -e POSTGRES_PASSWORD=mypassword \
-  -e POSTGRES_DB=mydatabase \
-  -e DB_HOST=localhost \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=root \
+  -e POSTGRES_DB=debt_solver \
+  -p 5432:5432 \
+  postgres
+
+# Pull from dockerhub
+docker pull billzhaohongwei/caa900debtsolverproject:auth-service
+# create container
+docker run -d \
+  --name auth_container \
+  --network my_custom_bridge \
+  -e DB_HOST=my_postgres \
   -e DB_PORT=5432 \
   -e DB_USER=postgres \
   -e DB_PASSWORD=root \
   -e DB_NAME=debt_solver \
   -e DB_SSLMODE=disable \
-  -v pgdata:/var/lib/postgresql/data \
-  -p 5432:5432 \
-  postgres
+  -v /home/azureuser/BE-auth-service/configs:/root/configs \
+  -v /home/azureuser/BE-auth-service/db:/root/db \
+  -p 8080:8080 \
+  billzhaohongwei/caa900debtsolverproject:auth-service
+
 
 # Enter interactive mode
-sudo docker exec -it my_postgres psql -U myuser -d mydatabase
+sudo docker exec -it my_postgres psql -U postgres -d debt_solver
 or
 docker exec -it my_postgres bash
-psql -U myuser -d mydatabase
+psql -U postgres -d debt_solver
 
 # Sample command
 CREATE TABLE users (
@@ -57,6 +70,14 @@ SELECT * FROM users;
 \l # Lists all databases
 \dt # check tables
 \q # Exit
+
+# How to push local image to dockerhub
+docker login
+docker tag auth-service:latest billzhaohongwei/caa900debtsolverproject:auth-service
+docker push billzhaohongwei/caa900debtsolverproject:auth-service
+
+# Pull from dockerhub
+docker pull billzhaohongwei/caa900debtsolverproject:auth-service
 
 # How to push image to ACR: replace hello-world with image name
 # Step 1: Log in to Azure and to ACR from the VM

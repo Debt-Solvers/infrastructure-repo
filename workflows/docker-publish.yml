@@ -3,7 +3,7 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - main  # Change this if your main branch is different.
+      - quan  # This will trigger the workflow only on pushes to the "quan" branch
 
 jobs:
   build:
@@ -28,4 +28,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: your-dockerhub-username/your-repo-name:latest
+          tags: djgatsby/debt-solvers:latest

@@ -1,24 +1,23 @@
 # az login --use-device-code
 # The terraform code will deploy a VM with a public IP and docker installed.
-# It will also create a PostgreSQL Single Server with Azure Database
 # Need to have Azure subscription ID when applying deployment.
 # Remember to delete resources using terraform destroy after testing.
 
 # Initialization 
 ssh-keygen -t rsa -f a1
 terraform init
-terraform apply
-scp -i a1 ./setup_docker_containers.sh azureuser@<public_ip_address>:/home/azureuser/
-
+terraform apply -auto-approve
+# copy script to VM
+scp -i a1 ./setup_docker_containers.sh azureuser@<public IP>:/home/azureuser/
 # connect to VM
-ssh -i a1 azureuser@<public_ip_address>
+ssh -i a1 azureuser@<public IP>
 # give script permission
 chmod +x setup_docker_containers.sh
 # Run script
 ./setup_docker_containers.sh
 
-# Pull from github
-# build image
+#######################
+# Draft
 # Create containers
 docker run -d \
   --name my_postgres \
@@ -41,8 +40,6 @@ docker run -d \
   -e DB_PASSWORD=root \
   -e DB_NAME=debt_solver \
   -e DB_SSLMODE=disable \
-  -v /home/azureuser/BE-auth-service/configs:/root/configs \
-  -v /home/azureuser/BE-auth-service/db:/root/db \
   -p 8080:8080 \
   billzhaohongwei/caa900debtsolverproject:auth-service
 
@@ -79,25 +76,6 @@ docker push billzhaohongwei/caa900debtsolverproject:auth-service
 # Pull from dockerhub
 docker pull billzhaohongwei/caa900debtsolverproject:auth-service
 
-# How to push image to ACR: replace hello-world with image name
-# Step 1: Log in to Azure and to ACR from the VM
-az login
-az acr login --name <your_acr_name>
-# Step 2: Retrieve your ACR login server name, something like youracr.azurecr.io.
-az acr show --name <your_acr_name> --query loginServer --output tsv
-# Step 3: Tag the Docker Image with the ACR Login Server
-docker tag hello-world debtsolverdockerregistry.azurecr.io/hello-world:v1
-# Step 4: Push the Docker Image to ACR
-docker push debtsolverdockerregistry.azurecr.io/hello-world:v1
-# Step 5: Verify the Image in ACR (Optional)
-az acr repository list --name debtsolverdockerregistry --output table
-
-# How to pull image:
-# Step 1: Log in to ACR
-az login
-az acr login --name <your_acr_name>
-# Step 2: Pull Image
-docker pull debtsolverdockerregistry.azurecr.io/hello-world:v1
 
 # How to delete image in ACR: Replace debtsolverdockerregistry and hello-world
 az acr repository delete --name debtsolverdockerregistry --image hello-world:v1 --yes

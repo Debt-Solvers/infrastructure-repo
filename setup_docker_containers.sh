@@ -33,8 +33,6 @@ docker run -d \
   -e DB_PASSWORD=root \
   -e DB_NAME=debt_solver \
   -e DB_SSLMODE=disable \
-  -v /home/azureuser/BE-auth-service/configs:/root/configs \
-  -v /home/azureuser/BE-auth-service/db:/root/db \
   -p 8080:8080 \
   billzhaohongwei/caa900debtsolverproject:auth-service
 

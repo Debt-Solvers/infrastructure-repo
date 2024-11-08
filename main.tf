@@ -3,7 +3,7 @@ provider "azurerm" {
   features {}
 
   # Azure details, replace with sub IP or use env
-  subscription_id = "56ac1107-64d9-439a-9c99-dd90aa2f458e"
+  subscription_id = "91375292-d6b4-4a28-a2bf-1cc04c2f2ac4"
 }
 
 # Create a resource group

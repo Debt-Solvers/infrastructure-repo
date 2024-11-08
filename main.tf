@@ -160,3 +160,19 @@ resource "azurerm_container_registry" "my_acr" {
     Environment = "Dev"
   }
 }
+
+#-----------------------------------------------------------------------------------
+# VM for Kubernetes Kind Cluster
+resource "azurerm_linux_virtual_machine" "my_vm_kind" {
+  name                = var.vm_name_kind # New variable for this VM's name
+  resource_group_name = azurerm_resource_group.my_rg.name
+  location            = azurerm_resource_group.my_rg.location
+  size                = var.vm_size
+
+  admin_username                  = var.admin_username
+  disable_password_authentication = true
+
+  admin_ssh_key {
+    username   = var.admin_username
+    public_key = file("./a1.pub") # Replace with the path to your SSH public key
+  }

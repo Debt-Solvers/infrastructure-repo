@@ -176,3 +176,89 @@ resource "azurerm_linux_virtual_machine" "my_vm_kind" {
     username   = var.admin_username
     public_key = file("./a1.pub") # Replace with the path to your SSH public key
   }
+
+  network_interface_ids = [azurerm_network_interface.my_nic_kind.id] # New NIC for this VM
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "StandardSSD_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+
+  # Custom script to install Docker and Kind
+  custom_data = base64encode(file("install_docker_and_kind.sh"))
+}
+
+# Additional Network Interface for Second VM
+resource "azurerm_network_interface" "my_nic_kind" {
+  name                = "vmNICKind"
+  location            = azurerm_resource_group.my_rg.location
+  resource_group_name = azurerm_resource_group.my_rg.name
+
+  ip_configuration {
+    name                          = "vmIPConfigKind"
+    subnet_id                     = azurerm_subnet.my_subnet.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.my_public_ip_kind.id # New public IP
+  }
+}
+
+# Public IP for the second VM
+resource "azurerm_public_ip" "my_public_ip_kind" {
+  name                = "vmPublicIPKind"
+  location            = azurerm_resource_group.my_rg.location
+  resource_group_name = azurerm_resource_group.my_rg.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+/*
+# Create PostgreSQL Single Server with Azure Database
+resource "azurerm_postgresql_server" "my_postgresql_server" {
+  name                = var.postgresql_server_name
+  location            = azurerm_resource_group.my_rg.location
+  resource_group_name = azurerm_resource_group.my_rg.name
+
+  administrator_login          = var.postgresql_admin_username
+  administrator_login_password = var.postgresql_admin_password
+
+  sku_name   = "B_Gen5_1" # Basic SKU
+  storage_mb = 5120       # Minimum storage for basic SKU
+
+  version                 = "11" # PostgreSQL version 11 (or change to 10, 12, etc.)
+  ssl_enforcement_enabled = true
+
+  geo_redundant_backup_enabled = false
+  backup_retention_days        = 7 # For development workloads, this is often enough
+
+  tags = {
+    Environment = "Development"
+    Workload    = "Development"
+  }
+}
+
+# Create the PostgreSQL database
+resource "azurerm_postgresql_database" "my_database" {
+  name                = var.postgresql_database_name
+  resource_group_name = azurerm_resource_group.my_rg.name
+  server_name         = azurerm_postgresql_server.my_postgresql_server.name
+  charset             = "UTF8"
+  collation           = "English_United States.1252"
+}
+
+# PostgreSQL firewall rule to allow VM's IP address
+resource "azurerm_postgresql_firewall_rule" "allow_vm_ip" {
+  name                = "AllowVMAccess"
+  resource_group_name = azurerm_resource_group.my_rg.name
+  server_name         = azurerm_postgresql_server.my_postgresql_server.name
+
+  start_ip_address = azurerm_public_ip.my_public_ip.ip_address
+  end_ip_address   = azurerm_public_ip.my_public_ip.ip_address
+}
+*/

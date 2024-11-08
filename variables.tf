@@ -64,6 +64,12 @@ variable "admin_username" {
   default     = "azureuser"
 }
 
+variable "vm_name_kind" {
+  description = "Name of the VM for Kubernetes Kind cluster"
+  default     = "myKindVM"
+}
+
+
 /*
 variable "admin_password" {
   description = "Admin password for the VM"

@@ -7,17 +7,20 @@
 ssh-keygen -t rsa -f a1
 terraform init
 terraform apply -auto-approve
+# The BE container will be listening on public IP port 8080.
+
+# --------------------------------------------------------------
+# Draft
 # copy script to VM
-scp -i a1 ./setup_docker_containers.sh azureuser@<public IP>:/home/azureuser/
+scp -i a1 ./setup_docker_containers.sh azureuser@13.92.253.71:/home/azureuser/
 # connect to VM
-ssh -i a1 azureuser@<public IP>
+ssh -i a1 azureuser@13.92.253.71
 # give script permission
 chmod +x setup_docker_containers.sh
 # Run script
 ./setup_docker_containers.sh
 
-#######################
-# Draft
+
 # Create containers
 docker run -d \
   --name my_postgres \

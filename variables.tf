@@ -43,6 +43,19 @@ variable "subnet_address_prefix" {
 }
 
 #-----------------------------------------------
+# DNS configuration variables
+#-----------------------------------------------
+variable "dns_zone_name" {
+  type    = string
+  default = "debtsolver.com" # Custom domain
+}
+
+variable "dns_subdomain" {
+  type    = string
+  default = "be" # Subdomain
+}
+
+#-----------------------------------------------
 # VM variables
 #-----------------------------------------------
 

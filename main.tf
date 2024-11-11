@@ -20,7 +20,7 @@ resource "azurerm_virtual_network" "my_vnet" {
   resource_group_name = azurerm_resource_group.my_rg.name
 }
 
-# Subnet
+# Subnet of the VM
 resource "azurerm_subnet" "my_subnet" {
   name                 = var.subnet_name
   resource_group_name  = azurerm_resource_group.my_rg.name
@@ -48,6 +48,21 @@ resource "azurerm_public_ip" "my_public_ip" {
   resource_group_name = azurerm_resource_group.my_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
+}
+
+# DNS Zone for the custom domain
+resource "azurerm_dns_zone" "my_dns_zone" {
+  name                = var.dns_zone_name # Use custom domain variable
+  resource_group_name = azurerm_resource_group.my_rg.name
+}
+
+# DNS A Record pointing to the Public IP
+resource "azurerm_dns_a_record" "my_dns_a_record" {
+  name                = var.dns_subdomain # Use subdomain variable
+  zone_name           = azurerm_dns_zone.my_dns_zone.name
+  resource_group_name = azurerm_resource_group.my_rg.name
+  ttl                 = 300
+  records             = [azurerm_public_ip.my_public_ip.ip_address] # Associate with the public IP
 }
 
 # VM for hosting Go Backend
@@ -161,6 +176,7 @@ resource "azurerm_subnet_network_security_group_association" "my_nsg_association
   network_security_group_id = azurerm_network_security_group.my_nsg.id
 }
 
+/*
 #-----------------------------------------------------------------------------------
 # VM for Kubernetes Kind Cluster
 resource "azurerm_linux_virtual_machine" "my_vm_kind" {

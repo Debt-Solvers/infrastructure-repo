@@ -9,12 +9,14 @@ terraform init
 terraform apply -auto-approve
 # The BE container will be listening on public IP port 8080.
 
+# Destroy command
+terraform destroy -auto-approve 
 # --------------------------------------------------------------
 # Draft
 # copy script to VM
-scp -i a1 ./setup_docker_containers.sh azureuser@13.92.253.71:/home/azureuser/
+scp -i a1 ./setup_docker_containers.sh azureuser@<public IP>:/home/azureuser/
 # connect to VM
-ssh -i a1 azureuser@13.92.253.71
+ssh -i a1 azureuser@52.170.221.113
 # give script permission
 chmod +x setup_docker_containers.sh
 # Run script

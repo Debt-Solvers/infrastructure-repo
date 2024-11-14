@@ -20,7 +20,7 @@ resource "azurerm_virtual_network" "my_vnet" {
   resource_group_name = azurerm_resource_group.my_rg.name
 }
 
-# Subnet
+# Subnet of the VM
 resource "azurerm_subnet" "my_subnet" {
   name                 = var.subnet_name
   resource_group_name  = azurerm_resource_group.my_rg.name
@@ -48,7 +48,25 @@ resource "azurerm_public_ip" "my_public_ip" {
   resource_group_name = azurerm_resource_group.my_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  domain_name_label   = "caa900debtsolverapp" # Set your desired DNS label here
 }
+
+/*
+# DNS Zone for the custom domain
+resource "azurerm_dns_zone" "my_dns_zone" {
+  name                = var.dns_zone_name # Use custom domain variable
+  resource_group_name = azurerm_resource_group.my_rg.name
+}
+
+# DNS A Record pointing to the Public IP
+resource "azurerm_dns_a_record" "my_dns_a_record" {
+  name                = var.dns_subdomain # Use subdomain variable
+  zone_name           = azurerm_dns_zone.my_dns_zone.name
+  resource_group_name = azurerm_resource_group.my_rg.name
+  ttl                 = 300
+  records             = [azurerm_public_ip.my_public_ip.ip_address] # Associate with the public IP
+}
+*/
 
 # VM for hosting Go Backend
 resource "azurerm_linux_virtual_machine" "my_vm" {
@@ -59,7 +77,7 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
 
   admin_username                  = var.admin_username
   disable_password_authentication = true
-  
+
   admin_ssh_key {
     username   = var.admin_username
     public_key = file("./a1.pub") # Replace with the path to your SSH public key
@@ -83,7 +101,7 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
   custom_data = base64encode(file("install_docker.sh"))
 }
 
-# Network Security Group (NSG) to control inbound traffic
+# Network Security Group (NSG) to control traffic
 resource "azurerm_network_security_group" "my_nsg" {
   name                = "myNSG"
   location            = azurerm_resource_group.my_rg.location
@@ -98,20 +116,20 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "0.0.0.0/0" # Allows from any IP
+    source_address_prefix      = "0.0.0.0/0"
     destination_address_prefix = "*"
   }
 
   # Allow HTTP (port 80) from anywhere
   security_rule {
-    name                       = "AllowHTTP"
+    name                       = "AllowHTTP80"
     priority                   = 1002
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "80"
-    source_address_prefix      = "0.0.0.0/0" # Allows from any IP
+    source_address_prefix      = "0.0.0.0/0"
     destination_address_prefix = "*"
   }
 
@@ -124,11 +142,24 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "5432"
-    source_address_prefix      = "0.0.0.0/0"    # Allows access from any IP
+    source_address_prefix      = "0.0.0.0/0"
     destination_address_prefix = "*"
   }
 
-  # (Optional) Deny all other inbound traffic
+  # Allow HTTP (port 8080) from anywhere
+  security_rule {
+    name                       = "AllowHTTP8080"
+    priority                   = 1004
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp" # Change to Tcp from "*"
+    source_port_range          = "*"
+    destination_port_range     = "8080"
+    source_address_prefix      = "0.0.0.0/0"
+    destination_address_prefix = "*"
+  }
+
+  # (Basic) Deny all other inbound traffic
   security_rule {
     name                       = "DenyAllInbound"
     priority                   = 2000
@@ -148,19 +179,7 @@ resource "azurerm_subnet_network_security_group_association" "my_nsg_association
   network_security_group_id = azurerm_network_security_group.my_nsg.id
 }
 
-# Create Azure ACR
-resource "azurerm_container_registry" "my_acr" {
-  name                     = "debtsolverdockerregistry"            # Must be globally unique
-  resource_group_name      = azurerm_resource_group.my_rg.name
-  location                 = azurerm_resource_group.my_rg.location
-  sku                      = "Basic"                       # Options are Basic, Standard, or Premium
-  admin_enabled            = true                          # Enables admin user login
-
-  tags = {
-    Environment = "Dev"
-  }
-}
-
+/*
 #-----------------------------------------------------------------------------------
 # VM for Kubernetes Kind Cluster
 resource "azurerm_linux_virtual_machine" "my_vm_kind" {

@@ -48,8 +48,10 @@ resource "azurerm_public_ip" "my_public_ip" {
   resource_group_name = azurerm_resource_group.my_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  domain_name_label   = "caa900debtsolverapp" # Set your desired DNS label here
 }
 
+/*
 # DNS Zone for the custom domain
 resource "azurerm_dns_zone" "my_dns_zone" {
   name                = var.dns_zone_name # Use custom domain variable
@@ -64,6 +66,7 @@ resource "azurerm_dns_a_record" "my_dns_a_record" {
   ttl                 = 300
   records             = [azurerm_public_ip.my_public_ip.ip_address] # Associate with the public IP
 }
+*/
 
 # VM for hosting Go Backend
 resource "azurerm_linux_virtual_machine" "my_vm" {

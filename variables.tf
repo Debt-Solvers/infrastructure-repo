@@ -43,6 +43,19 @@ variable "subnet_address_prefix" {
 }
 
 #-----------------------------------------------
+# DNS configuration variables
+#-----------------------------------------------
+variable "dns_zone_name" {
+  type    = string
+  default = "debtsolver.com" # Custom domain
+}
+
+variable "dns_subdomain" {
+  type    = string
+  default = "be" # Subdomain
+}
+
+#-----------------------------------------------
 # VM variables
 #-----------------------------------------------
 
@@ -63,6 +76,12 @@ variable "admin_username" {
   type        = string
   default     = "azureuser"
 }
+
+variable "vm_name_kind" {
+  description = "Name of the VM for Kubernetes Kind cluster"
+  default     = "myKindVM"
+}
+
 
 /*
 variable "admin_password" {

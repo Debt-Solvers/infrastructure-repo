@@ -51,24 +51,7 @@ resource "azurerm_public_ip" "my_public_ip" {
   domain_name_label   = "caa900debtsolverapp" # Set your desired DNS label here
 }
 
-/*
-# DNS Zone for the custom domain
-resource "azurerm_dns_zone" "my_dns_zone" {
-  name                = var.dns_zone_name # Use custom domain variable
-  resource_group_name = azurerm_resource_group.my_rg.name
-}
-
-# DNS A Record pointing to the Public IP
-resource "azurerm_dns_a_record" "my_dns_a_record" {
-  name                = var.dns_subdomain # Use subdomain variable
-  zone_name           = azurerm_dns_zone.my_dns_zone.name
-  resource_group_name = azurerm_resource_group.my_rg.name
-  ttl                 = 300
-  records             = [azurerm_public_ip.my_public_ip.ip_address] # Associate with the public IP
-}
-*/
-
-# VM for hosting Go Backend
+# VM for hosting Go Backend service containers
 resource "azurerm_linux_virtual_machine" "my_vm" {
   name                = var.vm_name
   resource_group_name = azurerm_resource_group.my_rg.name
@@ -160,6 +143,19 @@ resource "azurerm_network_security_group" "my_nsg" {
     destination_address_prefix = "*"
   }
 
+  # Allow HTTP (port 8081) from anywhere
+  security_rule {
+    name                       = "AllowHTTP8081"
+    priority                   = 1005
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8081"
+    source_address_prefix      = var.trusted_ip_range
+    destination_address_prefix = "*"
+  }
+
   # (Basic) Deny all other inbound traffic
   security_rule {
     name                       = "DenyAllInbound"
@@ -179,6 +175,23 @@ resource "azurerm_subnet_network_security_group_association" "my_nsg_association
   subnet_id                 = azurerm_subnet.my_subnet.id
   network_security_group_id = azurerm_network_security_group.my_nsg.id
 }
+
+/*
+# DNS Zone for the custom domain
+resource "azurerm_dns_zone" "my_dns_zone" {
+  name                = var.dns_zone_name # Use custom domain variable
+  resource_group_name = azurerm_resource_group.my_rg.name
+}
+
+# DNS A Record pointing to the Public IP
+resource "azurerm_dns_a_record" "my_dns_a_record" {
+  name                = var.dns_subdomain # Use subdomain variable
+  zone_name           = azurerm_dns_zone.my_dns_zone.name
+  resource_group_name = azurerm_resource_group.my_rg.name
+  ttl                 = 300
+  records             = [azurerm_public_ip.my_public_ip.ip_address] # Associate with the public IP
+}
+*/
 
 /*
 #-----------------------------------------------------------------------------------

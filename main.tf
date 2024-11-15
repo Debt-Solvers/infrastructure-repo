@@ -94,7 +94,7 @@ resource "azurerm_network_security_group" "my_nsg" {
   resource_group_name = azurerm_resource_group.my_rg.name
 
   # Allow SSH (port 22) from anywhere
-
+  
   # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
   security_rule {
     name                       = "AllowSSH"
@@ -104,7 +104,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "99.241.77.1"
+    source_address_prefix      = var.trusted_ip_range
     destination_address_prefix = "*"
   }
 

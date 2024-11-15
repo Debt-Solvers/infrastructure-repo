@@ -15,6 +15,12 @@ variable "location" {
   default     = "East US"
 }
 
+variable "environment" {
+  description = "The deployment environment (e.g., dev or prod)."
+  type        = string
+  default     = "dev" # Default to development
+}
+
 #-----------------------------------------------
 # Vnet variables
 #-----------------------------------------------
@@ -42,10 +48,19 @@ variable "subnet_address_prefix" {
   default     = ["10.0.1.0/24"]
 }
 
+variable "trusted_ip_ranges" {
+  description = "Trusted IP ranges for different environments."
+  type        = map(string)
+  default = {
+    dev  = "0.0.0.0/0"     # Allow all IPs in development
+    prod = "142.204.0.0/16" # Restrict access in production
+  }
+}
+
 variable "trusted_ip_range" {
   description = "The trusted IP range for SSH and HTTP access."
   type        = string
-  default     = "0.0.0.0/0" # Set a default if needed, or remove for required input
+  default     = lookup(var.trusted_ip_ranges, var.environment, "0.0.0.0/0")
 }
 
 #-----------------------------------------------

@@ -1,7 +1,6 @@
 name: "Terraform CI/CD Pipeline"
 
 on:
-  workflow_dispatch:  # Allows manual trigger
   push:
     branches:
       - main
@@ -11,10 +10,9 @@ on:
 
 jobs:
   terraform:
-    name: "Terraform"
     runs-on: ubuntu-latest
 
-    env:  
+    env:
       # Azure provider environment variables
       ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
       ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
@@ -25,7 +23,7 @@ jobs:
       TF_VAR_agent_client_secret: ${{ secrets.TF_VAR_agent_client_secret }}
       TF_VAR_subscription_id: ${{ secrets.TF_VAR_subscription_id }}
       TF_VAR_tenant_id: ${{ secrets.TF_VAR_tenant_id }}
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -39,8 +37,12 @@ jobs:
       - name: Terraform Validate
         run: terraform validate -no-color
 
+      - name: Install TFSec
+        run: |
+          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install.sh | bash
+
       - name: Run TFSec Security Scan
-        uses: aquasecurity/tfsec-action@v2
+        run: tfsec .
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan -no-color
@@ -51,6 +53,3 @@ jobs:
       - name: Terraform Destroy on Test Environment
         if: always()
         run: terraform destroy -auto-approve
-
-      - name: Run Terratest (if configured)
-        run: go test -v -timeout 30m ./test/

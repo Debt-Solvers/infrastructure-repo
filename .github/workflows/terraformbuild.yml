@@ -32,6 +32,10 @@ jobs:
     - name: Initialize Terraform
       run: terraform init
 
+    - name: "Terraform Validate"
+      id: validate
+      run: terraform validate -no-color
+
     - name: Terraform Plan
       run: terraform plan -out=tfplan
 

@@ -1,5 +1,9 @@
 # az login --use-device-code
 # The terraform code will deploy a VM with a public IP and docker installed.
+# Hold BE containers and DB container
+# BE container in dockerhub repo:
+# billzhaohongwei/caa900debtsolverproject-auth-service
+# billzhaohongwei/caa900debtsolverproject-expense-mgmt
 # Need to have Azure subscription ID when applying deployment.
 # Remember to delete resources using terraform destroy after testing.
 
@@ -7,17 +11,41 @@
 ssh-keygen -t rsa -f a1
 terraform init
 terraform apply -auto-approve
-# The BE container will be listening on public IP or FQDN port 8080.
+# The auth-service container will be listening on public IP or FQDN port 8080.
 curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8080
+# The expense-mgmt container will be listening on public IP or FQDN port 8081.
+curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8081
 
-# Destroy command
+# Troubleshoot
+ssh -i a1 azureuser@40.76.16.6
+
+# Destroy resources
 terraform destroy -auto-approve 
+
+# Configure Azure credentials for Github actions
+To fetch the credentials required to authenticate with Azure, run the following command:
+
+az ad sp create-for-rbac --name "myApp" --role contributor \
+                            --scopes /subscriptions/{subscription-id}/resourceGroups/{resource-group} \
+                            --sdk-auth
+
+  # Replace {subscription-id}, {resource-group} with the subscription, resource group details
+
+  # The command should output a JSON object similar to the example below
+
+  {
+    "clientId": "<GUID>",
+    "clientSecret": "<GUID>",
+    "subscriptionId": "<GUID>",
+    "tenantId": "<GUID>",
+    (...)
+  }
+# Add the JSON output as secrets TF_VAR_agent_client_id, TF_VAR_agent_client_secret, TF_VAR_subscription_id, TF_VAR_tenant_id in the GitHub repository. 
+
 # --------------------------------------------------------------
 # Draft
 # copy script to VM
 scp -i a1 ./setup_docker_containers.sh azureuser@<public IP>:/home/azureuser/
-# connect to VM
-ssh -i a1 azureuser@13.90.158.52
 # give script permission
 chmod +x setup_docker_containers.sh
 # Run script

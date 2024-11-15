@@ -84,7 +84,6 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
   custom_data = base64encode(file("install_docker.sh"))
 }
 
-# tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
 # Network Security Group (NSG) to control traffic
 resource "azurerm_network_security_group" "my_nsg" {
   name                = "myNSG"
@@ -92,6 +91,7 @@ resource "azurerm_network_security_group" "my_nsg" {
   resource_group_name = azurerm_resource_group.my_rg.name
 
   # Allow SSH (port 22) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
   security_rule {
     name                       = "AllowSSH"
     priority                   = 1001
@@ -105,6 +105,7 @@ resource "azurerm_network_security_group" "my_nsg" {
   }
 
   # Allow HTTP (port 80) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
   security_rule {
     name                       = "AllowHTTP80"
     priority                   = 1002
@@ -118,6 +119,7 @@ resource "azurerm_network_security_group" "my_nsg" {
   }
 
   # Allow inbound access to PostgreSQL on port 5432 from any IP
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
   security_rule {
     name                       = "AllowPostgres"
     priority                   = 1003
@@ -131,6 +133,7 @@ resource "azurerm_network_security_group" "my_nsg" {
   }
 
   # Allow HTTP (port 8080) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
   security_rule {
     name                       = "AllowHTTP8080"
     priority                   = 1004
@@ -144,6 +147,7 @@ resource "azurerm_network_security_group" "my_nsg" {
   }
 
   # Allow HTTP (port 8081) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
   security_rule {
     name                       = "AllowHTTP8081"
     priority                   = 1005

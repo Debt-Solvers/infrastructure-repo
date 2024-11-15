@@ -101,6 +101,7 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
   custom_data = base64encode(file("install_docker.sh"))
 }
 
+# tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
 # Network Security Group (NSG) to control traffic
 resource "azurerm_network_security_group" "my_nsg" {
   name                = "myNSG"
@@ -116,7 +117,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "0.0.0.0/0"
+    source_address_prefix      = var.trusted_ip_range
     destination_address_prefix = "*"
   }
 
@@ -129,7 +130,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "80"
-    source_address_prefix      = "0.0.0.0/0"
+    source_address_prefix      = var.trusted_ip_range
     destination_address_prefix = "*"
   }
 
@@ -142,7 +143,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "5432"
-    source_address_prefix      = "0.0.0.0/0"
+    source_address_prefix      = var.trusted_ip_range
     destination_address_prefix = "*"
   }
 
@@ -155,7 +156,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp" # Change to Tcp from "*"
     source_port_range          = "*"
     destination_port_range     = "8080"
-    source_address_prefix      = "0.0.0.0/0"
+    source_address_prefix      = var.trusted_ip_range
     destination_address_prefix = "*"
   }
 

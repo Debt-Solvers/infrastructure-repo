@@ -14,12 +14,33 @@ curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8080
 
 # Destroy command
 terraform destroy -auto-approve 
+
+# Configure Azure credentials for Github actions
+To fetch the credentials required to authenticate with Azure, run the following command:
+
+az ad sp create-for-rbac --name "myApp" --role contributor \
+                            --scopes /subscriptions/{subscription-id}/resourceGroups/{resource-group} \
+                            --sdk-auth
+
+  # Replace {subscription-id}, {resource-group} with the subscription, resource group details
+
+  # The command should output a JSON object similar to the example below
+
+  {
+    "clientId": "<GUID>",
+    "clientSecret": "<GUID>",
+    "subscriptionId": "<GUID>",
+    "tenantId": "<GUID>",
+    (...)
+  }
+# Add the JSON output as secrets TF_VAR_agent_client_id, TF_VAR_agent_client_secret, TF_VAR_subscription_id, TF_VAR_tenant_id in the GitHub repository. 
+
 # --------------------------------------------------------------
 # Draft
 # copy script to VM
 scp -i a1 ./setup_docker_containers.sh azureuser@<public IP>:/home/azureuser/
 # connect to VM
-ssh -i a1 azureuser@13.90.158.52
+ssh -i a1 azureuser@52.179.9.164
 # give script permission
 chmod +x setup_docker_containers.sh
 # Run script

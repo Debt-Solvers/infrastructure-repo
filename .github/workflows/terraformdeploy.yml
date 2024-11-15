@@ -2,18 +2,18 @@ name: "Terraform Deploy"
 
 on:
   workflow_dispatch:  # Allows manual trigger
-  # Uncomment these lines if you want automatic triggers
-  # push:
-  #   branches:
-  #     - main
-  # pull_request:
-  #   branches:
-  #     - main
 
 jobs:
   terraform:
     name: "Terraform"
     runs-on: ubuntu-latest
+
+    env:  # Set environment variables for Azure authentication
+      ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
+      ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
+      ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
+
     steps:
       - name: "Checkout"
         uses: actions/checkout@v3
@@ -39,17 +39,7 @@ jobs:
       - name: "Terraform Plan"
         id: plan
         run: terraform plan -no-color
-        env:
-          TF_VAR_agent_client_id: ${{ secrets.TF_VAR_agent_client_id }}
-          TF_VAR_agent_client_secret: ${{ secrets.TF_VAR_agent_client_secret }}
-          TF_VAR_subscription_id: ${{ secrets.TF_VAR_subscription_id }}
-          TF_VAR_tenant_id: ${{ secrets.TF_VAR_tenant_id }}
 
       - name: "Terraform Apply"
         id: apply
-        run: terraform apply
-        env:
-          TF_VAR_agent_client_id: ${{ secrets.TF_VAR_agent_client_id }}
-          TF_VAR_agent_client_secret: ${{ secrets.TF_VAR_agent_client_secret }}
-          TF_VAR_subscription_id: ${{ secrets.TF_VAR_subscription_id }}
-          TF_VAR_tenant_id: ${{ secrets.TF_VAR_tenant_id }}
+        run: terraform apply -auto-approve

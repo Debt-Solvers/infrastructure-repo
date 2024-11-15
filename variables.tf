@@ -45,7 +45,7 @@ variable "subnet_address_prefix" {
 variable "trusted_ip_range" {
   description = "The trusted IP range for SSH and HTTP access."
   type        = string
-  default     = "0.0.0.0/0"  # Set a default if needed, or remove for required input
+  default     = "0.0.0.0/0" # Set a default if needed, or remove for required input
 }
 
 #-----------------------------------------------

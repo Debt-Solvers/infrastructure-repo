@@ -1,5 +1,7 @@
 # az login --use-device-code
 # The terraform code will deploy a VM with a public IP and docker installed.
+# Hold BE container and db container
+# BE container in dockerhub: billzhaohongwei/caa900debtsolverproject:auth-service
 # Need to have Azure subscription ID when applying deployment.
 # Remember to delete resources using terraform destroy after testing.
 

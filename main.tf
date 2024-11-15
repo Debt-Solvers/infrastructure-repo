@@ -20,7 +20,7 @@ resource "azurerm_virtual_network" "my_vnet" {
   resource_group_name = azurerm_resource_group.my_rg.name
 }
 
-# Subnet
+# Subnet of the VM
 resource "azurerm_subnet" "my_subnet" {
   name                 = var.subnet_name
   resource_group_name  = azurerm_resource_group.my_rg.name
@@ -48,7 +48,25 @@ resource "azurerm_public_ip" "my_public_ip" {
   resource_group_name = azurerm_resource_group.my_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  domain_name_label   = "caa900debtsolverapp" # Set your desired DNS label here
 }
+
+/*
+# DNS Zone for the custom domain
+resource "azurerm_dns_zone" "my_dns_zone" {
+  name                = var.dns_zone_name # Use custom domain variable
+  resource_group_name = azurerm_resource_group.my_rg.name
+}
+
+# DNS A Record pointing to the Public IP
+resource "azurerm_dns_a_record" "my_dns_a_record" {
+  name                = var.dns_subdomain # Use subdomain variable
+  zone_name           = azurerm_dns_zone.my_dns_zone.name
+  resource_group_name = azurerm_resource_group.my_rg.name
+  ttl                 = 300
+  records             = [azurerm_public_ip.my_public_ip.ip_address] # Associate with the public IP
+}
+*/
 
 # VM for hosting Go Backend
 resource "azurerm_linux_virtual_machine" "my_vm" {
@@ -141,7 +159,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     destination_address_prefix = "*"
   }
 
-  # (Optional) Deny all other inbound traffic
+  # (Basic) Deny all other inbound traffic
   security_rule {
     name                       = "DenyAllInbound"
     priority                   = 2000
@@ -159,6 +177,64 @@ resource "azurerm_network_security_group" "my_nsg" {
 resource "azurerm_subnet_network_security_group_association" "my_nsg_association" {
   subnet_id                 = azurerm_subnet.my_subnet.id
   network_security_group_id = azurerm_network_security_group.my_nsg.id
+}
+
+/*
+#-----------------------------------------------------------------------------------
+# VM for Kubernetes Kind Cluster
+resource "azurerm_linux_virtual_machine" "my_vm_kind" {
+  name                = var.vm_name_kind # New variable for this VM's name
+  resource_group_name = azurerm_resource_group.my_rg.name
+  location            = azurerm_resource_group.my_rg.location
+  size                = var.vm_size
+
+  admin_username                  = var.admin_username
+  disable_password_authentication = true
+
+  admin_ssh_key {
+    username   = var.admin_username
+    public_key = file("./a1.pub") # Replace with the path to your SSH public key
+  }
+
+  network_interface_ids = [azurerm_network_interface.my_nic_kind.id] # New NIC for this VM
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "StandardSSD_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+
+  # Custom script to install Docker and Kind
+  custom_data = base64encode(file("install_docker_and_kind.sh"))
+}
+
+# Additional Network Interface for Second VM
+resource "azurerm_network_interface" "my_nic_kind" {
+  name                = "vmNICKind"
+  location            = azurerm_resource_group.my_rg.location
+  resource_group_name = azurerm_resource_group.my_rg.name
+
+  ip_configuration {
+    name                          = "vmIPConfigKind"
+    subnet_id                     = azurerm_subnet.my_subnet.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.my_public_ip_kind.id # New public IP
+  }
+}
+
+# Public IP for the second VM
+resource "azurerm_public_ip" "my_public_ip_kind" {
+  name                = "vmPublicIPKind"
+  location            = azurerm_resource_group.my_rg.location
+  resource_group_name = azurerm_resource_group.my_rg.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 /*

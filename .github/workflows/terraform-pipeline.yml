@@ -25,24 +25,44 @@ jobs:
       TF_VAR_tenant_id: ${{ secrets.TF_VAR_tenant_id }}
 
     steps:
+      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Step 2: Install ShellCheck
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      # Step 3: Run ShellCheck for Shell Script Linting
+      - name: Run ShellCheck
+        run: |
+          echo "Running ShellCheck for shell scripts..."
+          for script in *.sh; do
+            echo "Checking $script"
+            shellcheck "$script"
+          done
+
+      # Step 4: Set up Terraform
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
+      # Step 5: Create SSH Public Key File
       - name: Create SSH Public Key File
         run: echo "${{ secrets.VM_SSH_PUBLIC_KEY }}" > a1.pub
         
+      # Step 6: Terraform Init
       - name: Terraform Init
         run: terraform init  # Initialize providers and backend
 
+      # Step 7: Terraform Format Check
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
 
+      # Step 8: Terraform Validate
       - name: Terraform Validate
         run: terraform validate -no-color
 
+      # Step 9: Install TFSec
       - name: Install TFSec
         run: |
           curl -L "$(curl -s https://api.github.com/repos/aquasecurity/tfsec/releases/latest | grep -o 'https://.*linux_amd64.tar.gz')" -o tfsec.tar.gz
@@ -50,15 +70,19 @@ jobs:
           sudo mv tfsec/tfsec /usr/local/bin/tfsec
           rm -rf tfsec tfsec.tar.gz
 
+      # Step 10: Run TFSec Security Scan
       - name: Run TFSec Security Scan
         run: tfsec .
 
+      # Step 11: Terraform Plan
       - name: Terraform Plan
         run: terraform plan -out=tfplan -no-color
 
+      # Step 12: Terraform Apply on Test Environment
       - name: Terraform Apply on Test Environment
         run: terraform apply -auto-approve tfplan
 
+      # Step 13: Terraform Destroy on Test Environment
       - name: Terraform Destroy on Test Environment
         if: always()
         run: terraform destroy -auto-approve

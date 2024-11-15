@@ -86,6 +86,10 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
   custom_data = base64encode(file("install_docker.sh"))
 }
 
+locals {
+  trusted_ip_range = lookup(var.trusted_ip_ranges, var.environment, "0.0.0.0/0")
+}
+
 # Network Security Group (NSG) to control traffic
 # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
 resource "azurerm_network_security_group" "my_nsg" {
@@ -94,7 +98,7 @@ resource "azurerm_network_security_group" "my_nsg" {
   resource_group_name = azurerm_resource_group.my_rg.name
 
   # Allow SSH (port 22) from anywhere
-  
+
   # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
   security_rule {
     name                       = "AllowSSH"
@@ -104,7 +108,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = var.trusted_ip_range
+    source_address_prefix      = local.trusted_ip_range
     destination_address_prefix = "*"
   }
 
@@ -118,7 +122,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "80"
-    source_address_prefix      = var.trusted_ip_range
+    source_address_prefix      = local.trusted_ip_range
     destination_address_prefix = "*"
   }
 
@@ -132,7 +136,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "5432"
-    source_address_prefix      = var.trusted_ip_range
+    source_address_prefix      = local.trusted_ip_range
     destination_address_prefix = "*"
   }
 
@@ -146,7 +150,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp" # Change to Tcp from "*"
     source_port_range          = "*"
     destination_port_range     = "8080"
-    source_address_prefix      = var.trusted_ip_range
+    source_address_prefix      = local.trusted_ip_range
     destination_address_prefix = "*"
   }
 
@@ -160,7 +164,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "8081"
-    source_address_prefix      = var.trusted_ip_range
+    source_address_prefix      = local.trusted_ip_range
     destination_address_prefix = "*"
   }
 

@@ -52,16 +52,11 @@ variable "trusted_ip_ranges" {
   description = "Trusted IP ranges for different environments."
   type        = map(string)
   default = {
-    dev  = "0.0.0.0/0"     # Allow all IPs in development
+    dev  = "0.0.0.0/0"      # Allow all IPs in development
     prod = "142.204.0.0/16" # Restrict access in production
   }
 }
 
-variable "trusted_ip_range" {
-  description = "The trusted IP range for SSH and HTTP access."
-  type        = string
-  default     = lookup(var.trusted_ip_ranges, var.environment, "0.0.0.0/0")
-}
 
 #-----------------------------------------------
 # DNS configuration variables

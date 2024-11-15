@@ -18,21 +18,3 @@ jobs:
       TF_VAR_subscription_id: ${{ secrets.TF_VAR_subscription_id }}
       TF_VAR_tenant_id: ${{ secrets.TF_VAR_tenant_id }}
 
-    steps:
-      - name: "Checkout"
-        uses: actions/checkout@v3
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-
-      - name: Create SSH Public Key File
-        run: echo "${{ secrets.VM_SSH_PUBLIC_KEY }}" > a1.pub
-
-      - name: "Terraform Init"
-        run: terraform init
-
-      - name: "Terraform Plan Destroy"
-        run: terraform plan -destroy -out=tfplan
-
-      - name: "Terraform Destroy"
-        run: terraform apply -auto-approve tfplan

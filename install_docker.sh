@@ -56,7 +56,7 @@ docker run -d \
 
 # Wait for PostgreSQL to initialize
 echo "Waiting for PostgreSQL to start..."
-for i in {1..10}; do
+for _ in {1..10}; do
   if docker exec my_postgres pg_isready -U postgres > /dev/null 2>&1; then
     echo "PostgreSQL is ready!"
     break

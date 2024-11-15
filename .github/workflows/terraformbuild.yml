@@ -12,6 +12,17 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    env:  # Set environment variables at the job level
+      TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_resource_group_name: "my-resource-group"
+      TF_VAR_location: "East US"
+      TF_VAR_vnet_name: "my-vnet"
+      TF_VAR_vnet_address_space: '["10.0.0.0/16"]'
+      TF_VAR_subnet_name: "my-subnet"
+      TF_VAR_subnet_address_prefix: '["10.0.1.0/24"]'
+      TF_VAR_vm_name: "my-vm"
+      TF_VAR_vm_size: "Standard_B1s"
+      TF_VAR_admin_username: "azureuser"
 
     steps:
     - name: Checkout repository

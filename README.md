@@ -1,7 +1,9 @@
 # az login --use-device-code
 # The terraform code will deploy a VM with a public IP and docker installed.
-# Hold BE container and db container
-# BE container in dockerhub: billzhaohongwei/caa900debtsolverproject:auth-service
+# Hold BE containers and DB container
+# BE container in dockerhub repo:
+# billzhaohongwei/caa900debtsolverproject-auth-service
+# billzhaohongwei/caa900debtsolverproject-expense-mgmt
 # Need to have Azure subscription ID when applying deployment.
 # Remember to delete resources using terraform destroy after testing.
 
@@ -9,10 +11,15 @@
 ssh-keygen -t rsa -f a1
 terraform init
 terraform apply -auto-approve
-# The BE container will be listening on public IP or FQDN port 8080.
+# The auth-service container will be listening on public IP or FQDN port 8080.
 curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8080
+# The expense-mgmt container will be listening on public IP or FQDN port 8081.
+curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8081
 
-# Destroy command
+# Troubleshoot
+ssh -i a1 azureuser@40.76.16.6
+
+# Destroy resources
 terraform destroy -auto-approve 
 
 # Configure Azure credentials for Github actions
@@ -39,8 +46,6 @@ az ad sp create-for-rbac --name "myApp" --role contributor \
 # Draft
 # copy script to VM
 scp -i a1 ./setup_docker_containers.sh azureuser@<public IP>:/home/azureuser/
-# connect to VM
-ssh -i a1 azureuser@52.179.9.164
 # give script permission
 chmod +x setup_docker_containers.sh
 # Run script

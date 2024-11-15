@@ -40,7 +40,7 @@ jobs:
         run: terraform validate -no-color
 
       - name: Run TFSec Security Scan
-        uses: aquasecurity/tfsec-action@v1
+        uses: aquasecurity/tfsec-action@v2
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan -no-color

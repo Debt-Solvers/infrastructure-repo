@@ -24,41 +24,4 @@ jobs:
       TF_VAR_subscription_id: ${{ secrets.TF_VAR_subscription_id }}
       TF_VAR_tenant_id: ${{ secrets.TF_VAR_tenant_id }}
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-
-      - name: Create SSH Public Key File
-        run: echo "${{ secrets.VM_SSH_PUBLIC_KEY }}" > a1.pub
-        
-      - name: Terraform Init
-        run: terraform init  # Initialize providers and backend
-
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
-
-      - name: Terraform Validate
-        run: terraform validate -no-color
-
-      - name: Install TFSec
-        run: |
-          curl -L "$(curl -s https://api.github.com/repos/aquasecurity/tfsec/releases/latest | grep -o 'https://.*linux_amd64.tar.gz')" -o tfsec.tar.gz
-          mkdir -p tfsec && tar -xzf tfsec.tar.gz -C tfsec
-          sudo mv tfsec/tfsec /usr/local/bin/tfsec
-          rm -rf tfsec tfsec.tar.gz
-
-      - name: Run TFSec Security Scan
-        run: tfsec .
-
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan -no-color
-
-      - name: Terraform Apply on Test Environment
-        run: terraform apply -auto-approve tfplan
-
-      - name: Terraform Destroy on Test Environment
-        if: always()
-        run: terraform destroy -auto-approve
+   

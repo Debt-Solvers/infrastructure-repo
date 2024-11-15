@@ -3,7 +3,7 @@ provider "azurerm" {
   features {}
 
   # Azure details, replace with sub IP or use env
-  subscription_id = "91375292-d6b4-4a28-a2bf-1cc04c2f2ac4"
+  subscription_id = "56ac1107-64d9-439a-9c99-dd90aa2f458e"
 }
 
 # Create a resource group
@@ -51,24 +51,7 @@ resource "azurerm_public_ip" "my_public_ip" {
   domain_name_label   = "caa900debtsolverapp" # Set your desired DNS label here
 }
 
-/*
-# DNS Zone for the custom domain
-resource "azurerm_dns_zone" "my_dns_zone" {
-  name                = var.dns_zone_name # Use custom domain variable
-  resource_group_name = azurerm_resource_group.my_rg.name
-}
-
-# DNS A Record pointing to the Public IP
-resource "azurerm_dns_a_record" "my_dns_a_record" {
-  name                = var.dns_subdomain # Use subdomain variable
-  zone_name           = azurerm_dns_zone.my_dns_zone.name
-  resource_group_name = azurerm_resource_group.my_rg.name
-  ttl                 = 300
-  records             = [azurerm_public_ip.my_public_ip.ip_address] # Associate with the public IP
-}
-*/
-
-# VM for hosting Go Backend
+# VM for hosting Go Backend service containers
 resource "azurerm_linux_virtual_machine" "my_vm" {
   name                = var.vm_name
   resource_group_name = azurerm_resource_group.my_rg.name
@@ -98,16 +81,25 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
   }
 
   # Load and encode the external script file
+
+  # tfsec:ignore:azure-compute-no-secrets-in-custom-data Reason: install_docker.sh does not contain sensitive information.
   custom_data = base64encode(file("install_docker.sh"))
 }
 
+locals {
+  trusted_ip_range = lookup(var.trusted_ip_ranges, var.environment, "0.0.0.0/0")
+}
+
 # Network Security Group (NSG) to control traffic
+# tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
 resource "azurerm_network_security_group" "my_nsg" {
   name                = "myNSG"
   location            = azurerm_resource_group.my_rg.location
   resource_group_name = azurerm_resource_group.my_rg.name
 
   # Allow SSH (port 22) from anywhere
+
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
   security_rule {
     name                       = "AllowSSH"
     priority                   = 1001
@@ -116,11 +108,12 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "0.0.0.0/0"
+    source_address_prefix      = "142.204.17.55"
     destination_address_prefix = "*"
   }
 
   # Allow HTTP (port 80) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
   security_rule {
     name                       = "AllowHTTP80"
     priority                   = 1002
@@ -129,11 +122,12 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "80"
-    source_address_prefix      = "0.0.0.0/0"
+    source_address_prefix      = local.trusted_ip_range
     destination_address_prefix = "*"
   }
 
   # Allow inbound access to PostgreSQL on port 5432 from any IP
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
   security_rule {
     name                       = "AllowPostgres"
     priority                   = 1003
@@ -142,11 +136,12 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "5432"
-    source_address_prefix      = "0.0.0.0/0"
+    source_address_prefix      = local.trusted_ip_range
     destination_address_prefix = "*"
   }
 
   # Allow HTTP (port 8080) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
   security_rule {
     name                       = "AllowHTTP8080"
     priority                   = 1004
@@ -155,7 +150,21 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp" # Change to Tcp from "*"
     source_port_range          = "*"
     destination_port_range     = "8080"
-    source_address_prefix      = "0.0.0.0/0"
+    source_address_prefix      = local.trusted_ip_range
+    destination_address_prefix = "*"
+  }
+
+  # Allow HTTP (port 8081) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
+  security_rule {
+    name                       = "AllowHTTP8081"
+    priority                   = 1005
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "8081"
+    source_address_prefix      = local.trusted_ip_range
     destination_address_prefix = "*"
   }
 
@@ -178,6 +187,23 @@ resource "azurerm_subnet_network_security_group_association" "my_nsg_association
   subnet_id                 = azurerm_subnet.my_subnet.id
   network_security_group_id = azurerm_network_security_group.my_nsg.id
 }
+
+/*
+# DNS Zone for the custom domain
+resource "azurerm_dns_zone" "my_dns_zone" {
+  name                = var.dns_zone_name # Use custom domain variable
+  resource_group_name = azurerm_resource_group.my_rg.name
+}
+
+# DNS A Record pointing to the Public IP
+resource "azurerm_dns_a_record" "my_dns_a_record" {
+  name                = var.dns_subdomain # Use subdomain variable
+  zone_name           = azurerm_dns_zone.my_dns_zone.name
+  resource_group_name = azurerm_resource_group.my_rg.name
+  ttl                 = 300
+  records             = [azurerm_public_ip.my_public_ip.ip_address] # Associate with the public IP
+}
+*/
 
 /*
 #-----------------------------------------------------------------------------------

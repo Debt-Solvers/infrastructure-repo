@@ -85,6 +85,7 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
 }
 
 # Network Security Group (NSG) to control traffic
+# tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
 resource "azurerm_network_security_group" "my_nsg" {
   name                = "myNSG"
   location            = azurerm_resource_group.my_rg.location

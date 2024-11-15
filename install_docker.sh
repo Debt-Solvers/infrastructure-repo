@@ -54,11 +54,23 @@ docker run -d \
   -p 5432:5432 \
   postgres
 
-# Optional: Wait for Postgres container to initialize
-sleep 10
+# Wait for PostgreSQL to initialize
+echo "Waiting for PostgreSQL to start..."
+for _ in {1..10}; do
+  if docker exec my_postgres pg_isready -U postgres > /dev/null 2>&1; then
+    echo "PostgreSQL is ready!"
+    break
+  fi
+  echo "PostgreSQL not ready yet. Retrying in 2 seconds..."
+  sleep 2
+done
 
-# Step 4: Pull the auth-service image from Docker Hub
-docker pull billzhaohongwei/caa900debtsolverproject:auth-service
+# Optional: Wait for Postgres container to initialize
+# sleep 10
+
+# Step 4: Pull the auth-service and expense-mgmt images from Docker Hub
+docker pull billzhaohongwei/caa900debtsolverproject-auth-service:latest
+docker pull billzhaohongwei/caa900debtsolverproject-expense-mgmt:latest
 
 # Step 5: Create the auth-service container
 docker run -d \
@@ -71,7 +83,20 @@ docker run -d \
   -e DB_NAME=debt_solver \
   -e DB_SSLMODE=disable \
   -p 8080:8080 \
-  billzhaohongwei/caa900debtsolverproject:auth-service
+  billzhaohongwei/caa900debtsolverproject-auth-service:latest
+
+# Step 5: Create the expense-service container
+docker run -d \
+  --name expense_container \
+  --network my_custom_bridge \
+  -e DB_HOST=my_postgres \
+  -e DB_PORT=5432 \
+  -e DB_USER=postgres \
+  -e DB_PASSWORD=root \
+  -e DB_NAME=debt_solver \
+  -e DB_SSLMODE=disable \
+  -p 8081:8081 \
+  billzhaohongwei/caa900debtsolverproject-expense-mgmt:latest
 
 # Step 6: Confirm that the containers are running
 docker ps

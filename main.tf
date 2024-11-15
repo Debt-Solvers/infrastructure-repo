@@ -81,6 +81,8 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
   }
 
   # Load and encode the external script file
+
+  # tfsec:ignore:azure-compute-no-secrets-in-custom-data Reason: install_docker.sh does not contain sensitive information.
   custom_data = base64encode(file("install_docker.sh"))
 }
 
@@ -92,6 +94,7 @@ resource "azurerm_network_security_group" "my_nsg" {
   resource_group_name = azurerm_resource_group.my_rg.name
 
   # Allow SSH (port 22) from anywhere
+
   # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
   security_rule {
     name                       = "AllowSSH"

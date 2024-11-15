@@ -101,7 +101,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = var.trusted_ip_range
+    source_address_prefix      = "99.241.77.1"
     destination_address_prefix = "*"
   }
 

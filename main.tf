@@ -205,7 +205,7 @@ resource "azurerm_dns_a_record" "my_dns_a_record" {
 }
 */
 
-/*
+
 #-----------------------------------------------------------------------------------
 # VM for Kubernetes Kind Cluster
 resource "azurerm_linux_virtual_machine" "my_vm_kind" {
@@ -261,6 +261,7 @@ resource "azurerm_public_ip" "my_public_ip_kind" {
   resource_group_name = azurerm_resource_group.my_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  domain_name_label   = "caa900debtsolverappbe" # Set your desired DNS label here
 }
 
 /*

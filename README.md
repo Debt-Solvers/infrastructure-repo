@@ -17,10 +17,12 @@ curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8080
 curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8081
 
 # Troubleshoot
-ssh -i a1 azureuser@40.76.16.6
+ssh -i a1 azureuser@23.101.141.11
 
 # Destroy resources
 terraform destroy -auto-approve 
+# Or with Powershell cmd
+Remove-AzResourceGroup -Name "debtSolverRG" -Force -Confirm:$false
 
 # Configure Azure credentials for Github actions
 To fetch the credentials required to authenticate with Azure, run the following command:
@@ -50,32 +52,6 @@ scp -i a1 ./setup_docker_containers.sh azureuser@<public IP>:/home/azureuser/
 chmod +x setup_docker_containers.sh
 # Run script
 ./setup_docker_containers.sh
-
-
-# Create containers
-docker run -d \
-  --name my_postgres \
-  --network my_custom_bridge \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=root \
-  -e POSTGRES_DB=debt_solver \
-  -p 5432:5432 \
-  postgres
-
-# Pull from dockerhub
-docker pull billzhaohongwei/caa900debtsolverproject:auth-service
-# create container
-docker run -d \
-  --name auth_container \
-  --network my_custom_bridge \
-  -e DB_HOST=my_postgres \
-  -e DB_PORT=5432 \
-  -e DB_USER=postgres \
-  -e DB_PASSWORD=root \
-  -e DB_NAME=debt_solver \
-  -e DB_SSLMODE=disable \
-  -p 8080:8080 \
-  billzhaohongwei/caa900debtsolverproject:auth-service
 
 
 # Enter interactive mode

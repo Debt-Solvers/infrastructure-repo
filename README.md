@@ -17,7 +17,8 @@ curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8080
 curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8081
 
 # Troubleshoot
-ssh -i a1 azureuser@23.101.141.11
+ssh -i a1 azureuser@caa900debtsolverapp.eastus.cloudapp.azure.com
+ssh -i a1 azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com
 
 # Destroy resources
 terraform destroy -auto-approve 
@@ -56,7 +57,7 @@ chmod +x setup_docker_containers.sh
 
 # Enter interactive mode
 sudo docker exec -it my_postgres psql -U postgres -d debt_solver
-or
+# or
 docker exec -it my_postgres bash
 psql -U postgres -d debt_solver
 

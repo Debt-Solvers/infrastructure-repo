@@ -28,6 +28,7 @@ resource "azurerm_subnet" "my_subnet" {
   address_prefixes     = var.subnet_address_prefix
 }
 
+# Network interface of the first VM
 resource "azurerm_network_interface" "my_nic" {
   name                = "vmNIC"
   location            = azurerm_resource_group.my_rg.location

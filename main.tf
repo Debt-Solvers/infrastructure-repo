@@ -28,7 +28,6 @@ resource "azurerm_subnet" "my_subnet" {
   address_prefixes     = var.subnet_address_prefix
 }
 
-/*
 # Network interface of the first VM
 resource "azurerm_network_interface" "my_nic" {
   name                = "vmNIC"
@@ -87,7 +86,6 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
   # tfsec:ignore:azure-compute-no-secrets-in-custom-data Reason: install_docker.sh does not contain sensitive information.
   custom_data = base64encode(file("install_docker.sh"))
 }
-*/
 
 locals {
   trusted_ip_range = lookup(var.trusted_ip_ranges, var.environment, "0.0.0.0/0")

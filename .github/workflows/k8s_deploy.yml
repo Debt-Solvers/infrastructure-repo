@@ -80,7 +80,8 @@ jobs:
       # Copy Kubernetes Manifest to VM
       - name: Copy Kubernetes Manifest
         run: |
-          scp -i ~/.ssh/id_rsa application.yaml azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com:/home/azureuser/
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa application.yaml azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com:/home/azureuser/
+    
 
       # Apply Kubernetes Manifest on VM
       - name: Apply Kubernetes Manifest

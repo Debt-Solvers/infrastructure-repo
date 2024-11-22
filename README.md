@@ -54,12 +54,13 @@ chmod +x setup_docker_containers.sh
 # Run script
 ./setup_docker_containers.sh
 
-
 # Enter interactive mode
 sudo docker exec -it my_postgres psql -U postgres -d debt_solver
 # or
 docker exec -it my_postgres bash
 psql -U postgres -d debt_solver
+# K8s
+kubectl exec -it <postgres-pod-name> -- psql -U postgres -d debt_solver
 
 # Sample command
 CREATE TABLE users (

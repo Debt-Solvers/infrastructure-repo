@@ -19,53 +19,58 @@ jobs:
       TF_VAR_tenant_id: ${{ secrets.TF_VAR_tenant_id }}
 
     steps:
-      - name: "Checkout"
+      # Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v3
 
+      # Set Up Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
 
-      - name: "Terraform Format"
-        id: fmt
+      # Terraform Commands
+      - name: Terraform Format
         run: terraform fmt
 
-      - name: Create SSH Public Key File
-        run: echo "${{ secrets.VM_SSH_PUBLIC_KEY }}" > a1.pub
-
-      - name: "Terraform Init"
-        id: init
+      - name: Terraform Init
         run: terraform init
 
-      - name: "Terraform Validate"
-        id: validate
+      - name: Terraform Validate
         run: terraform validate -no-color
 
-      - name: "Terraform Plan"
-        id: plan
+      - name: Terraform Plan
         run: terraform plan -no-color
 
-      - name: "Terraform Apply"
-        id: apply
+      - name: Terraform Apply
         run: terraform apply -auto-approve
 
-      - name: "Extract Kind VM Public IP"
+      # Extract Kind VM Public IP
+      - name: Extract Kind VM Public IP
         id: extract_ip
         run: |
           KIND_PUBLIC_IP=$(terraform output -raw kind_public_ip)
           echo "::set-output name=kind_vm_ip::$KIND_PUBLIC_IP"
         shell: bash
 
-      - name: "Wait for VM to be Ready"
+      # Wait for VM to be Ready
+      - name: Wait for VM to be Ready
         run: |
           echo "Waiting for the Kind VM to be ready..."
           for i in {1..15}; do
             nc -zv ${{ steps.extract_ip.outputs.kind_vm_ip }} 22 && break || sleep 10
           done
 
-      - name: "Copy Kubernetes Manifest"
+      # Configure SSH Key
+      - name: Configure SSH Key
+        run: |
+          echo "${{ secrets.VM_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      # Copy Kubernetes Manifest to VM
+      - name: Copy Kubernetes Manifest
         run: |
           scp -i ~/.ssh/id_rsa application.yaml azureuser@${{ steps.extract_ip.outputs.kind_vm_ip }}:/home/azureuser/
 
-      - name: "Apply Kubernetes Manifest"
+      # Apply Kubernetes Manifest on VM
+      - name: Apply Kubernetes Manifest
         run: |
           ssh -i ~/.ssh/id_rsa azureuser@${{ steps.extract_ip.outputs.kind_vm_ip }} kubectl apply -f /home/azureuser/application.yaml

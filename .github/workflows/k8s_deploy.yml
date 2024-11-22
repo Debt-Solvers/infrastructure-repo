@@ -1,0 +1,71 @@
+name: "Deploy Infrastructure and Kubernetes Resources"
+
+on:
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  terraform:
+    name: "Terraform and Kubernetes Deployment"
+    runs-on: ubuntu-latest
+
+    env:  # Set environment variables for both Terraform and Azure provider
+      ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
+      ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
+      ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
+      TF_VAR_agent_client_id: ${{ secrets.TF_VAR_agent_client_id }}
+      TF_VAR_agent_client_secret: ${{ secrets.TF_VAR_agent_client_secret }}
+      TF_VAR_subscription_id: ${{ secrets.TF_VAR_subscription_id }}
+      TF_VAR_tenant_id: ${{ secrets.TF_VAR_tenant_id }}
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: "Terraform Format"
+        id: fmt
+        run: terraform fmt
+
+      - name: Create SSH Public Key File
+        run: echo "${{ secrets.VM_SSH_PUBLIC_KEY }}" > a1.pub
+
+      - name: "Terraform Init"
+        id: init
+        run: terraform init
+
+      - name: "Terraform Validate"
+        id: validate
+        run: terraform validate -no-color
+
+      - name: "Terraform Plan"
+        id: plan
+        run: terraform plan -no-color
+
+      - name: "Terraform Apply"
+        id: apply
+        run: terraform apply -auto-approve
+
+      - name: "Extract Kind VM Public IP"
+        id: extract_ip
+        run: |
+          KIND_PUBLIC_IP=$(terraform output -raw kind_public_ip)
+          echo "::set-output name=kind_vm_ip::$KIND_PUBLIC_IP"
+        shell: bash
+
+      - name: "Wait for VM to be Ready"
+        run: |
+          echo "Waiting for the Kind VM to be ready..."
+          for i in {1..15}; do
+            nc -zv ${{ steps.extract_ip.outputs.kind_vm_ip }} 22 && break || sleep 10
+          done
+
+      - name: "Copy Kubernetes Manifest"
+        run: |
+          scp -i ~/.ssh/id_rsa application.yaml azureuser@${{ steps.extract_ip.outputs.kind_vm_ip }}:/home/azureuser/
+
+      - name: "Apply Kubernetes Manifest"
+        run: |
+          ssh -i ~/.ssh/id_rsa azureuser@${{ steps.extract_ip.outputs.kind_vm_ip }} kubectl apply -f /home/azureuser/application.yaml

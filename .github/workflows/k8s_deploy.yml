@@ -23,6 +23,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+    # Create SSH Public Key File
+      - name: Create SSH Public Key File
+        run: |
+            echo "${{ secrets.VM_SSH_PRIVATE_KEY }}" > a1
+            chmod 600 a1
+            ssh-keygen -y -f a1 > a1.pub
+
       # Set Up Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1

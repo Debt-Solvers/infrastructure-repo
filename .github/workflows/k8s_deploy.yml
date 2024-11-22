@@ -80,9 +80,9 @@ jobs:
       # Copy Kubernetes Manifest to VM
       - name: Copy Kubernetes Manifest
         run: |
-          scp -i ~/.ssh/id_rsa application.yaml azureuser@${{ steps.extract_ip.outputs.kind_vm_ip }}:/home/azureuser/
+          scp -i ~/.ssh/id_rsa application.yaml azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com:/home/azureuser/
 
       # Apply Kubernetes Manifest on VM
       - name: Apply Kubernetes Manifest
         run: |
-          ssh -i ~/.ssh/id_rsa azureuser@${{ steps.extract_ip.outputs.kind_vm_ip }} kubectl apply -f /home/azureuser/application.yaml
+          ssh -i ~/.ssh/id_rsa azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com kubectl apply -f /home/azureuser/application.yaml

@@ -16,6 +16,13 @@ curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8080
 # The expense-mgmt container will be listening on public IP or FQDN port 8081.
 curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8081
 
+# copy script to VM
+scp -i a1 ./application.yaml azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com:/home/azureuser/
+# ssh into vm
+ssh -i a1 azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com
+# apply application deployment
+kubectl apply -f application.yaml
+
 # Troubleshoot
 ssh -i a1 azureuser@caa900debtsolverapp.eastus.cloudapp.azure.com
 ssh -i a1 azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com
@@ -60,7 +67,7 @@ sudo docker exec -it my_postgres psql -U postgres -d debt_solver
 docker exec -it my_postgres bash
 psql -U postgres -d debt_solver
 # K8s
-kubectl exec -it <postgres-pod-name> -- psql -U postgres -d debt_solver
+kubectl exec -it postgres-statefulset-0 -- psql -U postgres -d debt_solver
 
 # Sample command
 CREATE TABLE users (

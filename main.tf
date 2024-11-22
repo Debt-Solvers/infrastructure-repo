@@ -28,6 +28,7 @@ resource "azurerm_subnet" "my_subnet" {
   address_prefixes     = var.subnet_address_prefix
 }
 
+# Network interface of the first VM
 resource "azurerm_network_interface" "my_nic" {
   name                = "vmNIC"
   location            = azurerm_resource_group.my_rg.location
@@ -108,7 +109,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "142.204.17.55"
+    source_address_prefix      = "0.0.0.0/0"
     destination_address_prefix = "*"
   }
 
@@ -168,6 +169,34 @@ resource "azurerm_network_security_group" "my_nsg" {
     destination_address_prefix = "*"
   }
 
+  # Allow TCP (port 30000) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
+  security_rule {
+    name                       = "AllowTCP30000"
+    priority                   = 1006
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "30000"
+    source_address_prefix      = local.trusted_ip_range
+    destination_address_prefix = "*"
+  }
+
+  # Allow TCP (port 30001) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
+  security_rule {
+    name                       = "AllowTCP30001"
+    priority                   = 1007
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "30001"
+    source_address_prefix      = local.trusted_ip_range
+    destination_address_prefix = "*"
+  }
+
   # (Basic) Deny all other inbound traffic
   security_rule {
     name                       = "DenyAllInbound"
@@ -205,7 +234,6 @@ resource "azurerm_dns_a_record" "my_dns_a_record" {
 }
 */
 
-/*
 #-----------------------------------------------------------------------------------
 # VM for Kubernetes Kind Cluster
 resource "azurerm_linux_virtual_machine" "my_vm_kind" {
@@ -261,6 +289,7 @@ resource "azurerm_public_ip" "my_public_ip_kind" {
   resource_group_name = azurerm_resource_group.my_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  domain_name_label   = "caa900debtsolverappbe" # Set your desired DNS label here
 }
 
 /*

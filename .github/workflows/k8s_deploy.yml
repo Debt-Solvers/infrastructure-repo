@@ -23,12 +23,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-    # Create SSH Public Key File
+      # Configure SSH Key
+      - name: Configure SSH Key
+        run: |
+          mkdir -p ~/.ssh  # Ensure the .ssh directory exists
+          echo "${{ secrets.VM_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      # Create SSH Public Key File
       - name: Create SSH Public Key File
         run: |
-            echo "${{ secrets.VM_SSH_PRIVATE_KEY }}" > a1
-            chmod 600 a1
-            ssh-keygen -y -f a1 > a1.pub
+          ssh-keygen -y -f ~/.ssh/id_rsa > a1.pub
 
       # Set Up Terraform
       - name: Setup Terraform

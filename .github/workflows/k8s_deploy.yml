@@ -1,0 +1,102 @@
+name: "Deploy Infrastructure and Kubernetes Resources"
+
+on:
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  terraform:
+    name: "Terraform and Kubernetes Deployment"
+    runs-on: ubuntu-latest
+
+    env:  # Set environment variables for both Terraform and Azure provider
+      ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
+      ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
+      ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
+      TF_VAR_agent_client_id: ${{ secrets.TF_VAR_agent_client_id }}
+      TF_VAR_agent_client_secret: ${{ secrets.TF_VAR_agent_client_secret }}
+      TF_VAR_subscription_id: ${{ secrets.TF_VAR_subscription_id }}
+      TF_VAR_tenant_id: ${{ secrets.TF_VAR_tenant_id }}
+
+    steps:
+      # Checkout Repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Configure SSH Key
+      - name: Configure SSH Key
+        run: |
+          mkdir -p ~/.ssh  # Ensure the .ssh directory exists
+          echo "${{ secrets.VM_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      # Create SSH Public Key File
+      - name: Create SSH Public Key File
+        run: |
+          ssh-keygen -y -f ~/.ssh/id_rsa > a1.pub
+
+      # Set Up Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      # Terraform Commands
+      - name: Terraform Format
+        run: terraform fmt
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        run: terraform plan -no-color
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+
+      # Extract Kind VM Public IP
+      - name: Extract Kind VM Public IP
+        id: extract_ip
+        run: |
+          KIND_PUBLIC_IP=$(terraform output -raw kind_public_ip)
+          echo "::set-output name=kind_vm_ip::$KIND_PUBLIC_IP"
+        shell: bash
+
+      # Wait for VM to be Ready
+      - name: Wait for VM to Be Ready
+        run: |
+          echo "Waiting for the Kind VM to be ready..."
+          for i in {1..15}; do
+            if nc -z -w 5 caa900debtsolverappbe.eastus.cloudapp.azure.com 22; then
+              echo "VM is ready!"
+              break
+            else
+              echo "VM not ready yet. Retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+
+      # Copy Kubernetes Manifest to VM
+      - name: Copy Kubernetes Manifest
+        run: |
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa application.yaml azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com:/home/azureuser/
+
+      # Wait for Kubernetes Cluster
+      - name: Wait for Kubernetes Cluster
+        run: |
+          echo "Waiting for Kubernetes cluster to be ready..."
+          for i in {1..15}; do
+            if ssh -i ~/.ssh/id_rsa azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com kubectl get nodes | grep -q "Ready"; then
+              echo "Kubernetes cluster is ready!"
+              break
+            else
+              echo "Cluster not ready yet. Retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+
+      # Apply Kubernetes Manifest on VM
+      - name: Apply Kubernetes Manifest
+        run: |
+          ssh -i ~/.ssh/id_rsa azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com kubectl apply -f /home/azureuser/application.yaml

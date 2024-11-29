@@ -7,7 +7,12 @@
 # Need to have Azure subscription ID when applying deployment.
 # Remember to delete resources using terraform destroy after testing.
 
-# Initialization 
+# Update 11/29/2024
+# use az powershell to create storage for tf state files first with setup-tfstorage.ps1
+# Run github action k8s_deploy.yml
+# To destroy, run terraform destroy.yml
+
+# Initialization
 ssh-keygen -t rsa -f a1
 terraform init
 terraform apply -auto-approve
@@ -62,12 +67,15 @@ chmod +x setup_docker_containers.sh
 ./setup_docker_containers.sh
 
 # Enter interactive mode
-sudo docker exec -it my_postgres psql -U postgres -d debt_solver
-# or
-docker exec -it my_postgres bash
-psql -U postgres -d debt_solver
 # K8s
 kubectl exec -it postgres-statefulset-0 -- psql -U postgres -d debt_solver
+# Docker
+sudo docker exec -it my_postgres psql -U postgres -d debt_solver
+
+# View DB info in structured view
+\x
+\pset border 2
+SELECT * FROM USERS;
 
 # Sample command
 CREATE TABLE users (

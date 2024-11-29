@@ -180,3 +180,73 @@ spec:
       targetPort: 8081 # Container port
       nodePort: 30001  # Exposed NodePort
   type: NodePort
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-nodeport-service
+  labels:
+    app: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432       # The port exposed within the cluster
+      targetPort: 5432 # The port the PostgreSQL container listens on
+      nodePort: 30003  # The NodePort exposed to the host machine
+  type: NodePort
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: receipts-service-deployment
+  labels:
+    app: receipts-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: receipts-service
+  template:
+    metadata:
+      labels:
+        app: receipts-service
+    spec:
+      containers:
+        - name: receipts-service
+          image: billzhaohongwei/caa900debtsolverproject-receipts-mgmt:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: DB_HOST
+              value: "postgres-service" # PostgreSQL service name
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: "postgres"
+            - name: DB_PASSWORD
+              value: "root"
+            - name: DB_NAME
+              value: "debt_solver"
+            - name: DB_SSLMODE
+              value: "disable"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: receipts-service-nodeport
+  labels:
+    app: receipts-service
+spec:
+  selector:
+    app: receipts-service
+  ports:
+    - protocol: TCP
+      port: 8082       # ClusterIP port
+      targetPort: 8082 # Port exposed by the container
+      nodePort: 30002  # Exposed NodePort
+  type: NodePort

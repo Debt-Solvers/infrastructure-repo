@@ -99,5 +99,12 @@ jobs:
       # Apply Kubernetes Manifest on VM
       - name: Apply Kubernetes Manifest
         run: |
-          ssh -i ~/.ssh/id_rsa azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com \
-            kubectl apply -f /home/azureuser/application.yaml --kubeconfig=/home/azureuser/.kube/config
+          ssh -i ~/.ssh/id_rsa azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com << EOF
+            export KUBECONFIG=/home/azureuser/.kube/config
+            echo "Applying Kubernetes manifest...";
+            kubectl apply -f /home/azureuser/application.yaml || {
+              echo "Failed to apply Kubernetes manifest!";
+              exit 1;
+            }
+            echo "Manifest applied successfully.";
+          EOF

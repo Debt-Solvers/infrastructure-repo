@@ -7,7 +7,12 @@
 # Need to have Azure subscription ID when applying deployment.
 # Remember to delete resources using terraform destroy after testing.
 
-# Initialization 
+# Update 11/29/2024
+# use az powershell to create storage for tf state files first with setup-tfstorage.ps1
+# Run github action k8s_deploy.yml
+# To destroy, run terraform destroy.yml
+
+# Initialization
 ssh-keygen -t rsa -f a1
 terraform init
 terraform apply -auto-approve

@@ -29,7 +29,12 @@ jobs:
         run: echo "${{ secrets.VM_SSH_PUBLIC_KEY }}" > a1.pub
 
       - name: "Terraform Init"
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=debtSolverTfRG" \
+            -backend-config="storage_account_name=debtsolvertfsa" \
+            -backend-config="container_name=debtsolvertfcontainer" \
+            -backend-config="key=terraform.tfstate"
 
       - name: "Terraform Plan Destroy"
         run: terraform plan -destroy -out=tfplan

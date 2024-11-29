@@ -28,6 +28,8 @@ resource "azurerm_subnet" "my_subnet" {
   address_prefixes     = var.subnet_address_prefix
 }
 
+/*
+#----------------- First VM with Docker installed --------------------
 # Network interface of the first VM
 resource "azurerm_network_interface" "my_nic" {
   name                = "vmNIC"
@@ -86,6 +88,7 @@ resource "azurerm_linux_virtual_machine" "my_vm" {
   # tfsec:ignore:azure-compute-no-secrets-in-custom-data Reason: install_docker.sh does not contain sensitive information.
   custom_data = base64encode(file("install_docker.sh"))
 }
+*/
 
 locals {
   trusted_ip_range = lookup(var.trusted_ip_ranges, var.environment, "0.0.0.0/0")
@@ -109,7 +112,7 @@ resource "azurerm_network_security_group" "my_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "142.204.17.55"
+    source_address_prefix      = "0.0.0.0/0"
     destination_address_prefix = "*"
   }
 
@@ -169,6 +172,62 @@ resource "azurerm_network_security_group" "my_nsg" {
     destination_address_prefix = "*"
   }
 
+  # Allow TCP (port 30000) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
+  security_rule {
+    name                       = "AllowTCP30000"
+    priority                   = 1006
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "30000"
+    source_address_prefix      = local.trusted_ip_range
+    destination_address_prefix = "*"
+  }
+
+  # Allow TCP (port 30001) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
+  security_rule {
+    name                       = "AllowTCP30001"
+    priority                   = 1007
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "30001"
+    source_address_prefix      = local.trusted_ip_range
+    destination_address_prefix = "*"
+  }
+
+  # Allow TCP (port 30002) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
+  security_rule {
+    name                       = "AllowTCP30002"
+    priority                   = 1008
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "30002"
+    source_address_prefix      = local.trusted_ip_range
+    destination_address_prefix = "*"
+  }
+
+  # Allow TCP (port 30003) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
+  security_rule {
+    name                       = "AllowTCP30003"
+    priority                   = 1009
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "30003"
+    source_address_prefix      = local.trusted_ip_range
+    destination_address_prefix = "*"
+  }
+
   # (Basic) Deny all other inbound traffic
   security_rule {
     name                       = "DenyAllInbound"
@@ -205,7 +264,6 @@ resource "azurerm_dns_a_record" "my_dns_a_record" {
   records             = [azurerm_public_ip.my_public_ip.ip_address] # Associate with the public IP
 }
 */
-
 
 #-----------------------------------------------------------------------------------
 # VM for Kubernetes Kind Cluster

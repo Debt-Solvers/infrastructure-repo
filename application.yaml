@@ -195,5 +195,5 @@ spec:
     - protocol: TCP
       port: 5432       # The port exposed within the cluster
       targetPort: 5432 # The port the PostgreSQL container listens on
-      nodePort: 30002  # The NodePort exposed to the host machine
+      nodePort: 30003  # The NodePort exposed to the host machine
   type: NodePort

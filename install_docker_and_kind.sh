@@ -35,8 +35,10 @@ nodes:
     hostPort: 30000
   - containerPort: 30001
     hostPort: 30001
-  - containerPort: 30002  # New port for PostgreSQL
+  - containerPort: 30002  # New port for Receipt-service
     hostPort: 30002       # Host machine port
+  - containerPort: 30003  # New port for PostgreSQL
+    hostPort: 30003       # Host machine port
 EOF
 
 sudo chown azureuser:azureuser /home/azureuser/kind.yaml

@@ -180,3 +180,20 @@ spec:
       targetPort: 8081 # Container port
       nodePort: 30001  # Exposed NodePort
   type: NodePort
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-nodeport-service
+  labels:
+    app: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432       # The port exposed within the cluster
+      targetPort: 5432 # The port the PostgreSQL container listens on
+      nodePort: 30002  # The NodePort exposed to the host machine
+  type: NodePort

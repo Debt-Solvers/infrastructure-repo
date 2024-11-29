@@ -200,6 +200,20 @@ resource "azurerm_network_security_group" "my_nsg" {
     destination_address_prefix = "*"
   }
 
+  # Allow TCP (port 30002) from anywhere
+  # tfsec:ignore:azure-network-no-public-ingress Reason: Backend must be publicly accessible to support the frontend mobile app.
+  security_rule {
+    name                       = "AllowTCP30002"
+    priority                   = 1008
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "30002"
+    source_address_prefix      = local.trusted_ip_range
+    destination_address_prefix = "*"
+  }
+
   # (Basic) Deny all other inbound traffic
   security_rule {
     name                       = "DenyAllInbound"

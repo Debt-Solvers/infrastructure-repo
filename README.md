@@ -62,12 +62,15 @@ chmod +x setup_docker_containers.sh
 ./setup_docker_containers.sh
 
 # Enter interactive mode
-sudo docker exec -it my_postgres psql -U postgres -d debt_solver
-# or
-docker exec -it my_postgres bash
-psql -U postgres -d debt_solver
 # K8s
 kubectl exec -it postgres-statefulset-0 -- psql -U postgres -d debt_solver
+# Docker
+sudo docker exec -it my_postgres psql -U postgres -d debt_solver
+
+# View DB info in structured view
+\x
+\pset border 2
+SELECT * FROM USERS;
 
 # Sample command
 CREATE TABLE users (

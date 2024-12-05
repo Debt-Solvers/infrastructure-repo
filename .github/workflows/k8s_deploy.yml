@@ -86,7 +86,7 @@ jobs:
       - name: Wait for Kubernetes Cluster
         run: |
           echo "Waiting for Kubernetes cluster to be ready..."
-          for i in {1..15}; do
+          for i in {1..30}; do
             if ssh -i ~/.ssh/id_rsa azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com kubectl get nodes | grep -q "Ready"; then
               echo "Kubernetes cluster is ready!"
               break

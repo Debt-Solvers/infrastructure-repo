@@ -8,18 +8,20 @@
 # Remember to delete resources using terraform destroy after testing.
 
 # Update 11/29/2024
-# use az powershell to create storage for tf state files first with setup-tfstorage.ps1
-# Run github action k8s_deploy.yml
-# To destroy, run terraform destroy.yml
+# 1. use az powershell to create storage for tf state files first with setup-tfstorage.ps1
+# 2. Run github action of k8s_deploy.yml
+# 3. To destroy, run github action of terraform destroy.yml
 
+# If start from terraform
 # Initialization
 ssh-keygen -t rsa -f a1
 terraform init
 terraform apply -auto-approve
-# The auth-service container will be listening on public IP or FQDN port 8080.
-curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8080
-# The expense-mgmt container will be listening on public IP or FQDN port 8081.
-curl http://caa900debtsolverapp.eastus.cloudapp.azure.com:8081
+# The auth-service container will be listening on public IP or FQDN port 30000.
+
+# The expense-mgmt container will be listening on public IP or FQDN port 30001.
+
+# The receipts-mgmt container will be listening on public IP or FQDN port 30002.
 
 # copy script to VM
 scp -i a1 ./application.yaml azureuser@caa900debtsolverappbe.eastus.cloudapp.azure.com:/home/azureuser/
